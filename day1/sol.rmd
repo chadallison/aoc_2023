@@ -24,23 +24,40 @@ x = data.frame(line = input) |>
 sprintf("part 1 solution: %i", x)
 ```
 
-```{r message = F, warning = F}
+```{r}
 # part 2
-numbers = c("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "zero")
-
 x = data.frame(line = input) |>
   extract(line, "first", "(\\d|one|two|three|four|five|six|seven|eight|nine|zero)", remove = F) |>
   extract(line, "final", ".*(\\d|one|two|three|four|five|six|seven|eight|nine|zero)", remove = F) |>
   select(line, first, final) |>
-  mutate(first = coalesce(as.integer(first), match(first, numbers)),
-         final = coalesce(as.integer(final), match(final, numbers)),
+  mutate(first = case_when(first == "one" ~ "1",
+                           first == "two" ~ "2",
+                           first == "three" ~ "3",
+                           first == "four" ~ "4",
+                           first == "five" ~ "5",
+                           first == "six" ~ "6",
+                           first == "seven" ~ "7",
+                           first == "eight" ~ "8",
+                           first == "nine" ~ "9",
+                           first == "zero" ~ "0",
+                           T ~ first),
+         final = case_when(final == "one" ~ "1",
+                           final == "two" ~ "2",
+                           final == "three" ~ "3",
+                           final == "four" ~ "4",
+                           final == "five" ~ "5",
+                           final == "six" ~ "6",
+                           final == "seven" ~ "7",
+                           final == "eight" ~ "8",
+                           final == "nine" ~ "9",
+                           final == "zero" ~ "0",
+                           T ~ final),
          combined = as.integer(paste0(first, final))) |>
   summarise(x = sum(combined)) |>
   pull(x)
 
 sprintf("part 2 solution: %i", x)
 ```
-
 
 
 
