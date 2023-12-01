@@ -1,18 +1,15 @@
----
-title: "Advent of Code: 1 December 2023"
-output: github_document
-knit: (function(input, ...) { rmarkdown::render(input, output_file = "README.md", envir = globalenv()) })
----
+Advent of Code: 1 December 2023
+================
 
-```{r message = F, warning = F}
+``` r
 library(tidyverse)
 ```
 
-```{r}
+``` r
 input = readLines("input.txt")
 ```
 
-```{r}
+``` r
 # part 1
 x = data.frame(line = input) |>
   mutate(first = str_extract(line, "\\d"),
@@ -24,7 +21,9 @@ x = data.frame(line = input) |>
 sprintf("part 1 solution: %i", x)
 ```
 
-```{r}
+    ## [1] "part 1 solution: 54304"
+
+``` r
 # part 2
 x = data.frame(line = input) |>
   extract(line, "first", "(\\d|one|two|three|four|five|six|seven|eight|nine|zero)", remove = F) |>
@@ -59,30 +58,4 @@ x = data.frame(line = input) |>
 sprintf("part 2 solution: %i", x)
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    ## [1] "part 2 solution: 54418"
