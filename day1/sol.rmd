@@ -1,0 +1,71 @@
+---
+title: "Advent of Code: 1 December 2023"
+output: github_document
+knit: (function(input, ...) { rmarkdown::render(input, output_file = "README.md", envir = globalenv()) })
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+input = readLines("input.txt")
+```
+
+```{r}
+# part 1
+x = data.frame(line = input) |>
+  mutate(first = str_extract(line, "\\d"),
+         final = str_extract(line, "\\d(?=[^\\d]*$)"),
+         combined = as.integer(paste0(first, final))) |>
+  summarise(x = sum(combined)) |>
+  pull(x)
+
+sprintf("part 1 solution: %i", x)
+```
+
+```{r message = F, warning = F}
+# part 2
+numbers = c("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "zero")
+
+x = data.frame(line = input) |>
+  extract(line, "first", "(\\d|one|two|three|four|five|six|seven|eight|nine|zero)", remove = F) |>
+  extract(line, "final", ".*(\\d|one|two|three|four|five|six|seven|eight|nine|zero)", remove = F) |>
+  select(line, first, final) |>
+  mutate(first = coalesce(as.integer(first), match(first, numbers)),
+         final = coalesce(as.integer(final), match(final, numbers)),
+         combined = as.integer(paste0(first, final))) |>
+  summarise(x = sum(combined)) |>
+  pull(x)
+
+sprintf("part 2 solution: %i", x)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
