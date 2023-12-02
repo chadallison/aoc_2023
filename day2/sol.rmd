@@ -1,0 +1,87 @@
+---
+title: "Advent of Code: 2 December 2023"
+output: github_document
+knit: (function(input, ...) { rmarkdown::render(input, output_file = "README.md", envir = globalenv()) })
+---
+
+```{r message = F, warning = F}
+library(tidyverse)
+```
+
+```{r}
+input = readLines("input.txt")
+```
+
+```{r}
+df = data.frame(line = input) |>
+  separate(line, into = c("game", "values"), sep = ": ") |>
+  separate_rows(values, sep = "; ") |>
+  mutate(round = row_number(),
+         game = as.integer(str_remove_all(game, "Game "))) |>
+  separate_rows(values, sep = ", ") |>
+  separate(values, into = c("num", "color"), sep = " ", convert = T) |>
+  select(game, round, color, num)
+
+head(df)
+```
+
+```{r}
+# part 1
+x = df |>
+  mutate(possible = case_when(color == "blue" ~ num <= 14,
+                            color == "green" ~ num <= 13,
+                            color == "red" ~ num <= 12)) |>
+  group_by(game) |>
+  summarise(n = n(),
+            possible = sum(possible)) |>
+  filter(n == possible) |>
+  pull(game) |>
+  sum()
+
+sprintf("part 1 solution: %i", x)
+```
+
+```{r}
+# part 2
+x = df |>
+  group_by(game, color) |>
+  summarise(max = max(num),
+            .groups = "drop") |>
+  spread(color, max) |>
+  mutate(power = blue * green * red) |>
+  summarise(x = sum(power)) |>
+  pull(x)
+
+sprintf("part 2 solution: %i", x)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
