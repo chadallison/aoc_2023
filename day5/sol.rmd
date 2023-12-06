@@ -1,0 +1,57 @@
+---
+title: "Advent of Code: 5 December 2023"
+output: github_document
+knit: (function(input, ...) { rmarkdown::render(input, output_file = "README.md", envir = globalenv()) })
+---
+
+```{r message = F, warning = F}
+library(tidyverse)
+```
+
+```{r}
+input_raw = readLines("input.txt")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
