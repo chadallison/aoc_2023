@@ -1,10 +1,7 @@
----
-title: "Advent of Code: 5 December 2023"
-output: github_document
-knit: (function(input, ...) { rmarkdown::render(input, output_file = "README.md", envir = globalenv()) })
----
+Advent of Code: 5 December 2023
+================
 
-```{r message = F, warning = F}
+``` r
 library(tidyverse)
 
 input = readLines("input.txt")
@@ -47,7 +44,11 @@ tmp = lapply(seed_map, \(x) {
 
 x = min(seed_loc)
 sprintf("part 1 solution: %i", x)
+```
 
+    ## [1] "part 1 solution: 1181555926"
+
+``` r
 # part 2
 seed_loc_2 = split(seeds, (seq(seeds) + 1) %/% 2)
 mapped = F
@@ -90,47 +91,4 @@ tmp = lapply(list(c(min_i - 20000, 20000* 2)), \(x) {
 sprintf("part 2 solution: %i", min_seed_loc)
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    ## [1] "part 2 solution: 37817961"
