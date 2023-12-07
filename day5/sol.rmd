@@ -1,123 +1,188 @@
 ---
-title: "Advent of Code: 5 December 2023"
+title: "Advent of Code: 6 December 2023"
 output: github_document
 knit: (function(input, ...) { rmarkdown::render(input, output_file = "README.md", envir = globalenv()) })
 ---
 
 ```{r message = F, warning = F}
 library(tidyverse)
+library(janitor)
 
-input = readLines("input.txt")
-empty_lines = which(input == "") + 1
+my_data = as_tibble(read_lines("input.txt"))
 
-seeds = sub("seeds: ", "", input[1]) |> strsplit(" ") |> _[[1]] |> as.numeric()
-
-seed_map = list(
-  seed_soil = read.table("input.txt", skip = empty_lines[1], nrows = empty_lines[2] - empty_lines[1] - 2),
-  soil_fert = read.table("input.txt", skip = empty_lines[2], nrows = empty_lines[3] - empty_lines[2] - 2),
-  fert_water = read.table("input.txt", skip = empty_lines[3], nrows = empty_lines[4] - empty_lines[3] - 2),
-  water_light = read.table("input.txt", skip = empty_lines[4], nrows = empty_lines[5] - empty_lines[4] - 2),
-  light_temp = read.table("input.txt", skip = empty_lines[5], nrows = empty_lines[6] - empty_lines[5] - 2),
-  temp_humid = read.table("input.txt", skip = empty_lines[6], nrows = empty_lines[7] - empty_lines[6] - 2),
-  huid_loc = read.table("input.txt", skip = empty_lines[7])
-)
-
-seed_map = lapply(seed_map, as.matrix)
-
-# part 1
-seed_loc = seeds
-mapped = rep(F, length(seeds))
-
-apply_mapping = function(mapping) {
-  if (all(mapped)) return(NULL)
-  source = mapping[2] + mapping[3]
-  seed_diff = seed_loc - mapping[2]
-  valid_seeds = seed_loc >= mapping[2] & seed_loc < source
-  
-  seed_loc[valid_seeds & !mapped] <<- c(mapping[1] + seed_diff)[valid_seeds & !mapped]
-  mapped <<- mapped | valid_seeds
-  NULL
+return_dest = function(in_source_val, in_source_name, in_dest_name, t_lookup) {
+  to_join = tibble(source_name = in_source_name,
+                    dest_name = in_dest_name,
+                    in_source_val = in_source_val)
+  by = join_by(source_name, dest_name, between(in_source_val, source, source_upper))
+  best_match = left_join(to_join, t_lookup, by)
+  if (is.na(best_match$dest[1])) {
+    return(in_source_val)
+  } else {
+    return(in_source_val + best_match$delta[1])
+  }
 }
 
-tmp = lapply(seed_map, \(x) {
-  mapped <<- rep(F, length(seed_loc))
-  apply(x, 1, apply_mapping)
-  NULL
-})
+items = c("seed", "soil", "fertilizer", "water", "light", "temperature", "humidity", "location")
 
-x = min(seed_loc)
-sprintf("part 1 solution: %i", x)
+seeds = my_data |>
+  slice(1) |>
+  separate_longer_delim(value, " ") |>
+  slice(-1) |>
+  mutate(value = as.numeric(value)) |>
+  rename(seed = value)
 
-# part 2
-seed_loc_2 = split(seeds, (seq(seeds) + 1) %/% 2)
-mapped = F
-min_seed_loc = Inf
-i = Inf
-min_i = Inf
+t_lookup = my_data |>
+  filter(!value == "") |>
+  slice(-1) |>
+  mutate(mapping = ifelse(str_detect(value, "map"), value, NA)) |>
+  fill(mapping) |>
+  filter(!str_detect(value, "map")) |>
+  separate_wider_regex(mapping, patterns = c(source_name = ".*", "-to-", dest_name = ".*", " map:")) |>
+  separate_wider_delim(value, delim = " ", names = c("dest", "source", "range")) |>
+  mutate(across(dest:range, as.numeric)) |>
+  mutate(source_upper = source + range - 1) |>
+  mutate(dest_upper = dest + range - 1) |>
+  mutate(delta = dest - source)
 
-tmp = lapply(seed_loc_2, \(x) {
-  i <<- x[[1]]
-  while (i < x[[1]] + x[[2]]) {
-    seed_loc <<- i
-    lapply(seed_map, \(x) {
-      mapped <<- F
-      apply(x, 1, apply_mapping)
-    })
-    if (seed_loc < min_seed_loc) {
-      min_i <<- i
-      min_seed_loc <<- seed_loc
+seeds1 = seeds
+seeds1[items[2:length(items)]] = NA
+seeds1 = seeds1 |>  
+  rowwise() |>
+  mutate(soil = return_dest(seed, "seed", "soil", t_lookup)) |>
+  mutate(fertilizer = return_dest(soil, "soil", "fertilizer", t_lookup)) |>
+  mutate(water = return_dest(fertilizer, "fertilizer", "water", t_lookup)) |>
+  mutate(light = return_dest(water, "water", "light", t_lookup)) |>
+  mutate(temperature = return_dest(light, "light", "temperature", t_lookup)) |>
+  mutate(humidity = return_dest(temperature, "temperature", "humidity", t_lookup)) |>
+  mutate(location = return_dest(humidity, "humidity", "location", t_lookup))
+
+part1 = min(seeds1$location)
+sprintf("part 1 solution: %i", part1)
+
+return_splits = function(in_source_lower, in_source_upper, in_source_name, in_dest_name, t_lookup) {
+  to_join = tibble(source_name = in_source_name,
+                    dest_name = in_dest_name,
+                    in_source_lower = in_source_lower,
+                    in_source_upper = in_source_upper)
+  by_lower = join_by(source_name, dest_name, between(in_source_lower, source, source_upper))
+  by_upper = join_by(source_name, dest_name, between(in_source_upper, source, source_upper))
+  lower_match = left_join(to_join, t_lookup, by_lower)
+  upper_match = left_join(to_join, t_lookup, by_upper)
+  to_manipulate = lower_match |>
+    bind_rows(upper_match) |>
+    unique()
+  to_use = t_lookup |>
+    mutate(in_source_lower = in_source_lower) |>
+    mutate(in_source_upper = in_source_upper) |>
+    filter(source_name == in_source_name &
+           dest_name == in_dest_name &
+           group_order >= min(to_manipulate$group_order) &
+           group_order <= max(to_manipulate$group_order))
+  to_use = to_use |>
+    mutate(use_source_lower = ifelse(in_source_lower > source, in_source_lower, source)) |>
+    mutate(use_source_upper = ifelse(in_source_upper < source_upper, in_source_upper, source_upper)) |>
+    mutate(dest_lower = use_source_lower + delta) |>
+    mutate(dest_upper = use_source_upper + delta)
+  to_return = to_use |>
+    select(dest_lower, dest_upper) |>
+    rename(lower = dest_lower, upper = dest_upper)
+  return(to_return)
+}
+
+compute_next = function(data_in, in_source_name, in_dest_name, t_lookup) {
+  for (i in seq_along(data_in$lower)) {
+    if (i == 1) {
+      data_out = return_splits(data_in$lower[i], data_in$upper[i], in_source_name, in_dest_name, t_lookup)
+    } else {
+      data_out = data_out |>
+        bind_rows(data_out, return_splits(data_in$lower[i], data_in$upper[i], in_source_name, in_dest_name, t_lookup)) |>
+        unique()
     }
-    i <<- i + 20000
   }
-})
+  return(data_out)
+}
 
-tmp = lapply(list(c(min_i - 20000, 20000* 2)), \(x) {
-  i <<- x[[1]]
-  while (i <= x[[1]] + x[[2]]) {
-    seed_loc <<- i
-    lapply(seed_map, \(x) {
-      mapped = F
-      apply(x, 1, apply_mapping)
-    })
-    if (seed_loc < min_seed_loc) {
-      min_i <<- i
-      min_seed_loc <<- seed_loc
+seeds2 = seeds |>
+  mutate(pair = ifelse(row_number() %% 2 == 1, row_number(), row_number() - 1)) |>
+  mutate(type = ifelse(row_number() %% 2 == 1, "lower", "range")) |>
+  pivot_wider(names_from = type, values_from = seed) |>
+  mutate(upper = lower + range - 1) |>
+  select(-range, -pair)
+
+t_lookup_sorted = t_lookup |>
+  group_by(source_name, dest_name) |>
+  arrange(source, .by_group = TRUE) |>
+  select(source_name, dest_name, source, source_upper, delta, everything()) |>
+  mutate(lowest_source = min(source)) |>
+  mutate(highest_source = max(source_upper)) |>
+  mutate(group_order = row_number()) |>
+  ungroup()
+
+t_lookup_additional = t_lookup_sorted |>
+  ungroup() |>
+  select(-lowest_source, -highest_source)
+
+for (i in seq_along(t_lookup_sorted$source_name)) {
+  if (t_lookup_sorted$group_order[i] == 1) {
+    if (t_lookup_sorted$source[i] != 0) {
+      t_lookup_additional = t_lookup_additional |>
+        add_row(source_name = t_lookup_sorted$source_name[i],
+                dest_name = t_lookup_sorted$dest_name[i],
+                source = 0,
+                source_upper = t_lookup_sorted$source[i] - 1,
+                delta = 0,
+                dest = 0,
+                dest_upper = t_lookup_sorted$source[i] - 1,
+                group_order = 0)
     }
-    i <<- i + 1
+  } else if ((i < length(t_lookup_sorted$source_name) & t_lookup_sorted$group_order[i + 1] == 1) |
+             (i == length(t_lookup_sorted$source_name))) {
+    if (t_lookup_sorted$source_upper[i] != 4294967295) {
+      t_lookup_additional = t_lookup_additional |>
+        add_row(source_name = t_lookup_sorted$source_name[i],
+                dest_name = t_lookup_sorted$dest_name[i],
+                source = t_lookup_sorted$source_upper[i] + 1,
+                source_upper = 4294967295,
+                delta = 0,
+                dest = t_lookup_sorted$source_upper[i] + 1,
+                dest_upper = 4294967295,
+                group_order = t_lookup_sorted$group_order[i] + 1)
+    }
+  } else {
+    if ((t_lookup_sorted$source[i] != t_lookup_sorted$source_upper[i - 1] + 1) &
+        (t_lookup_sorted$source_name[i] == t_lookup_sorted$source_name[i - 1])) {
+      t_lookup_additional = t_lookup_additional |>
+        add_row(source_name = t_lookup_sorted$source_name[i],
+                dest_name = t_lookup_sorted$dest_name[i],
+                source = t_lookup_sorted$source_upper[i - 1] + 1,
+                source_upper = t_lookup_sorted$source[i] - 1,
+                delta = 0,
+                dest = t_lookup_sorted$source_upper[i - 1] + 1,
+                dest_upper = t_lookup_sorted$source[i] - 1,
+                group_order = t_lookup_sorted$group_order[i] + 0.5)
+    }
   }
-})
+}
 
-sprintf("part 2 solution: %i", min_seed_loc)
+t_lookup_additional= t_lookup_additional |>
+  select(-group_order) |>
+  group_by(source_name, dest_name) |>
+  arrange(source, .by_group = TRUE) |>
+  mutate(group_order = row_number()) |>
+  ungroup()
+
+soil2 = compute_next(seeds2, "seed", "soil", t_lookup_additional)
+fertilizer2 = compute_next(soil2, "soil", "fertilizer", t_lookup_additional)
+water2 = compute_next(fertilizer2, "fertilizer", "water", t_lookup_additional)
+light2 = compute_next(water2, "water", "light", t_lookup_additional)
+temperature2 = compute_next(light2, "light", "temperature", t_lookup_additional)
+humidity2 = compute_next(temperature2, "temperature", "humidity", t_lookup_additional)
+location2 = compute_next(humidity2, "humidity", "location", t_lookup_additional)
+
+part2 = min(location2$lower)
+sprintf("part 2 solution: %i", part2)
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
