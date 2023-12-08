@@ -16,7 +16,7 @@ df = data.frame(input) |>
 l = c(as.character(2:9), "T", "J", "Q", "K", "A")
 
 hands = df |> 
-  mutate(h = strsplit(hand,"") |> lapply(\(h) factor(h, levels = l))) |> 
+  mutate(h = strsplit(hand, "") |> lapply(\(h) factor(h, levels = l))) |> 
   mutate(rle = lapply(h, \(h) as.integer(h) |> sort() |> rle()),
          is_five = sapply(rle, \(r) any(r$lengths == 5)),
          is_four = sapply(rle, \(r) any(r$lengths == 4)),
@@ -41,7 +41,7 @@ sprintf("part 1 solution: %i", sum(hands$value))
 l2 = c("J", as.character(2:9), "T", "Q", "K", "A")
 
 hands2 = df |> 
-  mutate(h = strsplit(hand,"") |> lapply(\(h) factor(h, levels = l2))) |> 
+  mutate(h = strsplit(hand, "") |> lapply(\(h) factor(h, levels = l2))) |> 
   mutate(rle = lapply(h, \(h) as.integer(h) |> sort() |> rle()),
          is_five = sapply(rle, \(r) any(r$lengths == 5)),
          is_four = sapply(rle, \(r) any(r$lengths == 4)),
