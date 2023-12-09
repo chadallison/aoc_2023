@@ -1,0 +1,65 @@
+---
+title: "Advent of Code: 9 December 2023"
+output: github_document
+knit: (function(input, ...) { rmarkdown::render(input, output_file = "README.md", envir = globalenv()) })
+---
+
+```{r message = F, warning = F}
+library(tidyverse)
+
+input = readLines("input.txt")
+
+x = str_extract_all(input, "-?\\d+") |>
+  map(as.numeric)
+
+diff_recurse = function(x, ...) {
+  d = diff(x)
+  if (all(d == 0)) {
+    return(done(d))
+  }
+  return(d)
+}
+
+diff_accumulate = function(x) {
+  accumulate(seq_along(x), diff_recurse, .init = x)
+}
+
+trees = map(x, diff_accumulate)
+
+# part 1
+x = trees |>
+  map(map_dbl, last) |>
+  map_dbl(sum) |>
+  sum()
+
+sprintf("part 1 solution: %i", x)
+
+# part 2
+find_previous = function(tr) {
+  map_dbl(tr, first) |>
+    rev() |>
+    reduce(function(acc, nxt) nxt - acc)
+}
+
+x = trees |>
+  map_dbl(find_previous) |>
+  sum()
+
+sprintf("part 2 solution: %i", x)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
