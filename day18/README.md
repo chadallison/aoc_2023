@@ -2,29 +2,36 @@ Advent of Code: 18 December 2023
 ================
 
 ``` r
-x = read.table("input.txt", comment.char = "", sep = " ")
-dir = c(R = 1, D = 1i, L = -1, U = -1i)
-
-dig = function(dirs, lngs) {
-  l = sum(lngs) + 1L
-  cur = 0 + 0i
-  for (k in seq_along(dirs)) cur = c(cur, tail(cur, 1) + lngs[k] * dir[dirs[k]])
-  ar = -sum((Im(cur)[-length(cur)] + Im(cur[-1])) * diff(Re(cur))) / 2L # shoelace formula
-  sprintf("%.f", ar + 1L + (l - 1L) / 2L) # prick's theorem
+parse_input = function(path) {
+  d = matrix(unlist(strsplit(readLines(path), " ")), ncol = 3, byrow = T)
+  list(list(dir = d[, 1],
+            n = as.integer(d[, 2])),
+       list(dir = chartr("0123", "RDLU", substr(d[, 3], 8, 8)),
+            n = strtoi(substr(d[, 3], 3, 7), 16)))
 }
 
-# part 1
-sprintf("part 1 solution: %s", dig(x[,1], x[,2]))
+area = function(d) {
+  x = c(0, cumsum(unname(c(U = -1, D = 1, L = 0, R = 0)[d$dir]) * d$n))
+  y = c(0, cumsum(unname(c(U = 0, D = 0, L = -1, R = 1)[d$dir]) * d$n))
+  abs(sum(x * c(y[-1], y[1]) - c(x[-1], x[1]) * y) / 2) + sum(d$n) / 2 + 1 # shoelace formula
+}
+
+part1 = function(d) {
+  area(d[[1]])
+}
+
+part2 = function(d) {
+  format(area(d[[2]]), digits = 20)
+}
+
+d = parse_input("input.txt")
+sprintf("part 1 solution: %s", part1(d))
 ```
 
     ## [1] "part 1 solution: 47675"
 
 ``` r
-# part 2
-x[, 4] = names(dir)[as.integer(substr(x[, 3], 8, 8)) + 1L]
-x[, 5] = strtoi(substr(x[, 3], 3, 7), base = 16)
-
-sprintf("part 2 solution: %s", dig(x[, 4], x[, 5]))
+sprintf("part 2 solution: %s", part2(d))
 ```
 
     ## [1] "part 2 solution: 122103860427465"
