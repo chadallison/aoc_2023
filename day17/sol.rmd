@@ -5,9 +5,8 @@ knit: (function(input, ...) { rmarkdown::render(input, output_file = "README.md"
 ---
 
 ```{r}
-file_name = "input.txt"
-W = nchar(readLines(file_name, n = 1))
-input = as.matrix(read.fwf(file_name, widths = rep(1, W), colClasses = "integer"))
+W = nchar(readLines("input.txt", n = 1))
+input = as.matrix(read.fwf("input.txt", widths = rep(1, W), colClasses = "integer"))
 mode(input) = "integer"
 
 next_points = function(curr, direction, consecutive_steps, min_steps, max_steps){
