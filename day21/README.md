@@ -1,10 +1,7 @@
----
-title: "Advent of Code: 21 December 2023"
-output: github_document
-knit: (function(input, ...) { rmarkdown::render(input, output_file = "README.md", envir = globalenv()) })
----
+Advent of Code: 21 December 2023
+================
 
-```{r}
+``` r
 n = 131L
 data21 = unlist(read.fwf("input.txt", widths = rep(1L, n), com = ""))
 gr = unname(which(data21 != "#")) # graph
@@ -26,7 +23,11 @@ walk = function(stp, strt) {
 
 p1 = length(walk(64L, which(data21 == "S")))
 sprintf("part 1 solution: %s", p1)
+```
 
+    ## [1] "part 1 solution: 3682"
+
+``` r
 # part 2
 cur2 = walk(132L, which(data21 == "S"))
 n2 = length(cur2) # number of plots in starting field after even number of steps
@@ -48,28 +49,4 @@ res = c(n_even * n2, n_odd * n1, sum(tmp), (N - 1) * sum(tmp3), N * sum(tmp2))
 sprintf("part 2 solution: %.f", sum(res))
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    ## [1] "part 2 solution: 609012263058042"

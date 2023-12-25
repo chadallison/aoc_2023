@@ -1,0 +1,114 @@
+---
+title: "Advent of Code: 24 December 2023"
+output: github_document
+knit: (function(input, ...) { rmarkdown::render(input, output_file = "README.md", envir = globalenv()) })
+---
+
+```{r}
+input = readLines("input.txt")
+
+# path is one line of the original input
+get_line <- function(path) {
+  nums <- aochelpers::extract_numbers(path)
+  
+  px <- nums[1]
+  py <- nums[2]
+  vx <- nums[4]
+  vy <- nums[5]
+  m <- vy/vx
+  b <- py - m * px
+  
+  return(list(px = px, py = py, m = m, b = b, vx = vx, vy = vy))
+}
+
+both_in_range <- function(x, 
+                          y, 
+                          min = 200000000000000, 
+                          max = 400000000000000) {
+  ifelse(x >= min && x <= max && y >= min && y <= max,
+         TRUE,
+         FALSE)
+} 
+
+paths_intersect <- function(path1, path2) {
+  A <- get_line(path1)
+  B <- get_line(path2)
+  
+  # parallel lines won't intersect
+  if (A$m == B$m) {
+    # print("lines are parallel")
+    return(FALSE)
+  }
+  
+  # point of intersection
+  x <- (B$b - A$b)/(A$m - B$m)
+  y <- A$m * x + A$b
+  
+  # check if in past
+  if (x > A$px && A$vx < 0 || x < A$px && A$vx > 0) {
+    #print("intersect in past for A")
+    return(FALSE)
+  }
+  
+  if (x > B$px && B$vx < 0 || x < B$px && B$vx > 0) {
+    #print("intersect in past for B")
+    return(FALSE)
+  }
+  
+  both_in_range(x, y)
+}
+
+# check all pairs
+# need stringsAsFactors = FALSE to enable comparison to get unique pairs
+all_pairs <- expand.grid(input, input, stringsAsFactors = FALSE)
+unique_pairs <- all_pairs[all_pairs$Var1 < all_pairs$Var2, ]
+
+p1 = mapply(paths_intersect, unique_pairs$Var1, unique_pairs$Var2) |> 
+  sum()
+
+sprintf("part 1 solution: %s", p1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
